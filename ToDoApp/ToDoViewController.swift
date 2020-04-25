@@ -24,7 +24,7 @@ class ToDoViewController: UIViewController {
     
     private var isTaskSectionEmpty:[Bool] = [true,true] 
     
-    lazy var alertTextfield:UITextField = UITextField()
+    weak var alertTextfield:UITextField? = UITextField()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -86,17 +86,14 @@ class ToDoViewController: UIViewController {
         }
         
         let enter = UIAlertAction(title: "Enter", style: .default) { [weak self](_) in
-            
-            self?.handleAlertEnterButtonPressed(titleTextField: alert.textFields?.first?.text, dueDateTextField: alert.textFields?.last?.text)
+          self?.handleAlertEnterButtonPressed(titleTextField: alert.textFields?.first?.text, dueDateTextField: alert.textFields?.last?.text)
         }
         let cancel = UIAlertAction(title: "cancel", style: .cancel, handler: nil)
         alert.addAction(cancel)
         alert.addAction(enter)
         present(alert,animated: true)
     }
-    
-    
-    
+ 
     private func formatAlertTextFields(textFieldStyle:alertTextFieldStyle,textField:UITextField) {
         
         switch textFieldStyle {
@@ -122,11 +119,11 @@ class ToDoViewController: UIViewController {
     
     @objc private func dateValueChanged(sender:UIDatePicker) {
         
-        alertTextfield.text = sender.date.returnCurrentDate()
+        alertTextfield?.text = sender.date.returnCurrentDate()
     }
     
     @objc private func toolBarDoneButtonPressed() {
-        alertTextfield.endEditing(true)
+        alertTextfield?.endEditing(true)
     }
     
     private func handleAlertEnterButtonPressed(titleTextField:String?,dueDateTextField:String?) {
@@ -215,7 +212,8 @@ extension ToDoViewController:UITableViewDataSource,UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-       updateTableViewHeaderText(section: section)
+     
+        updateTableViewHeaderText(section: section)
         switch section {
         case 0:
             return  "Outstanding (\(tasks[section].count))"
@@ -250,7 +248,7 @@ extension ToDoViewController:ToDoButtonClickedDelegate {
       
         let index = tasks[section].firstIndex(where: {$0.returnUnmodifiedDate() == creationDate  })
         
-        UIView.animate(withDuration: 0.5) {
+     
             
         switch buttonClicked {
         case .completed:
@@ -261,7 +259,7 @@ extension ToDoViewController:ToDoButtonClickedDelegate {
         case .delete:
             self.appIsLoading = false
             self.deleteTableViewRow(cellIndexPath: IndexPath(row: index ?? 0, section: section),animation: .left)
-        }
+     
         }
 }
 }
@@ -286,6 +284,7 @@ extension ToDoViewController {
            
            if tasks[cellIndexPath.section].count > 1 {
                toDoTableView.beginUpdates()
+            toDoTableView.isUserInteractionEnabled = false
                toDoTableView.deleteRows(at: [cellIndexPath], with: animation)
                tasks[cellIndexPath.section].remove(at: cellIndexPath.row)
                toDoTableView.endUpdates()
@@ -306,6 +305,9 @@ extension ToDoViewController {
            }
     
               self.toDoTableView.beginUpdates()
+        UIView.animate(withDuration: 0.5) {
+            
+        
             self.toDoTableView.isUserInteractionEnabled = false
                   
 
@@ -316,7 +318,7 @@ extension ToDoViewController {
                       self.deleteTableViewRow(cellIndexPath: cellIndexPath,animation: .left)
                       self.insertTableViewRow(section: 1, animation: .right)
                       self.toDoTableView.endUpdates()
-    
+        }
     }
     
     private func updateTableViewHeaderText(section:Int) {
